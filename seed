@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Database configuration
+DB_NAME="colors"
+DB_USER="postgres"
+DB_HOST="0.0.0.0"
+SQL_FILE="create_tables.sql"
+
+# Check if the database exists
+if psql -U $DB_USER -h $DB_HOST -lqt | cut -d \| -f 1 | grep -qw $DB_NAME; then
+    echo "Database $DB_NAME already exists."
+else
+    echo "Database $DB_NAME does not exist."
+    read -p "Would you like to create it? (y/n): " create_db
+    if [[ $create_db =~ ^[Yy]$ ]]; then
+        echo "Creating database $DB_NAME..."
+        createdb -U $DB_USER -h $DB_HOST $DB_NAME
+        echo "Database $DB_NAME created successfully."
+    else
+        echo "Exiting without creating database."
+        exit 1
+    fi
+fi
+
+# Run the SQL script to create tables and insert data
+echo "Running SQL script to set up tables..."
+psql -U $DB_USER -h $DB_HOST -d $DB_NAME -f $SQL_FILE
+
+echo "Database setup complete."
